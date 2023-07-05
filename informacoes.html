@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <h1>LeVi Shoes</h1>
+  <h3>Os sapatos perfeitos para você</h3>
+  
+  <div id="cart">
+    <h2>Carrinho de Compras</h2>
+    <ul id="cart-items"></ul>
+    <p id="total">Total: R$0.00</p>
+  </div>
+  
+  <div id="products">
+    <h2>Produtos</h2>
+    <ul id="product-list">
+      <li class="product">
+        <img src="https://m.media-amazon.com/images/I/61a7D9W3-0L._AC_SY395_.jpg" width="100" height="150">
+        <p class="name">Código 1010: All Star branco- cano alto </p>
+        <p class="price"> R$150.00</p>
+      </li>
+      <li class="product">
+        <img src="https://a-static.mlcdn.com.br/800x560/tenis-star-feet-cano-alto-longo-casual-all-botinha-feminina-polo-blu/faceoff/15936305128/9ad27839b9badf2423d51359cdd13aed.jpeg" width="100" height="150">
+        <p class="name">Código 1011: All Star preto - cano alto </p>
+        <p class="price"> R$200.00</p>
+      </li>
+    </ul>
+  </div>
+  
+  <form id="order-form">
+    <label for="product-input">Produto:</label>
+    <input type="text" id="product-input" placeholder="Digite o código do produto">
+    <br>
+    <label for="quantity-input">Quantidade:</label>
+    <input type="number" id="quantity-input" placeholder="Digite a quantidade">
+    <br>
+    <button type="submit">Adicionar ao Carrinho</button>
+  </form>
+  
+
+    <!-- Abertura e Conexão com o Banco Local -->
+    <script type="text/javascript">
+        var db = window.openDatabase("Meu banco", "2.0", "Mybase", 4096);
+
+        db.transaction(function(criar) {
+            criar.executeSql("CREATE TABLE IF NOT EXISTS produtos (CodID INTEGER PRIMARY KEY, nomeProd TEXT, valorProd REAL)");
+        });
+
+        db.transaction(function(criar) {
+            criar.executeSql("CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, usuario TEXT, senha TEXT)");
+        });
+
+        function salvarProduto() {
+            var codPRD = document.getElementById("cdPrd").value;
+            var nomPRD = document.getElementById("nmPrd").value;
+            var valPRD = document.getElementById("vlPrd").value;
+
+            db.transaction(function(inserir) {
+                inserir.executeSql("INSERT INTO produtos (CodID, nomeProd, valorProd) VALUES (?,?,?)", [codPRD, nomPRD, valPRD]);
+            });
+        }
+
+        function atualizar() {
+            var codPRD = document.getElementById("cdPrd").value;
+            var nomPRD = document.getElementById("nmPrd").value;
+            var valPRD = document.getElementById("vlPrd").value;
+
+            db.transaction(function(transacao) {
+                transacao.executeSql("UPDATE produtos SET nomeProd = ?, valorProd = ? WHERE CodID = ?", [nomPRD, valPRD, codPRD]);
+            });
+        }
+
+        function excluir() {
+            var codPRD = document.getElementById("cdPrd").value;
+
+            db.transaction(function(transacao) {
+                transacao.executeSql("DELETE FROM produtos WHERE CodID = ?", [codPRD]);
+            });
+        }
+
+    </script>
+
+    <!-- Continuando: Captura do produto escolhido pelo usuário -->
+    <div>
+        <form onsubmit="salvarProduto()">
+            <h3>Inserir Informações do Produto</h3>
+            <p>
+                <input type="text" id="cdPrd" name="" placeholder="Código do Produto"><br>
+                <input type="text" id="nmPrd" name="" placeholder="Nome do Produto"><br>
+                <input type="text" id="vlPrd" name="" placeholder="Valor do Produto"><br>
+                <input type="submit" value="Enviar"><br>
+                <br>
+                <input type="button" value="Atualizar" onclick="atualizar()">
+                <input type="button" value="Excluir" onclick="excluir()">
+            </p>
+        </form>
+    </div>
+    </script>
+  
+  <script src="script.js"></script>
+</body>
+<script>
+    // Classe base para um produto
+class Product {
+  constructor(name, price) {
+    this.name = name;
+    this.price = price;
+  }
+}
+
+// Classe específica para sapatos que herda de Product
+class Shoe extends Product {
+  constructor(name, price, image) {
+    super(name, price);
+    this.image = image;
+  }
+}
+
+// Instâncias de sapatos com informações fictícias
+const shoe1 = new Shoe("1010", 150.00, "shoe1.jpg");
+const shoe2 = new Shoe("1011", 200.00, "shoe2.jpg");
+
+
+// Elementos HTML
+const productList = document.getElementById("product-list");
+const cartItems = document.getElementById("cart-items");
+const total = document.getElementById("total");
+const orderForm = document.getElementById("order-form");
+
+// Array para armazenar os itens do carrinho
+const cart = [];
+
+// Event listener para cliques nos produtos
+productList.addEventListener("click", function(event) {
+  const clickedElement = event.target;
+  
+  if (clickedElement.classList.contains("product")) {
+    const productName = clickedElement.querySelector(".name").innerText;
+    const productPrice = parseFloat(clickedElement.querySelector(".price").innerText.slice(1));
+    
+    addToCart(productName, productPrice);
+  }
+});
+
+// Event listener para envio do formulário
+orderForm.addEventListener("submit", function(event) {
+  event.preventDefault();
+  
+  const productName = document.getElementById("product-input").value;
+  const productQuantity = parseInt(document.getElementById("quantity-input").value);
+  
+  const product = findProduct(productName);
+  
+  if (product && productQuantity > 0) {
+    addToCart(product.name, product.price, productQuantity);
+  }
+  
+  document.getElementById("product-input").value = "";
+  document.getElementById("quantity-input").value = "";
+});
+
+// Função para adicionar um item ao carrinho
+function addToCart(name, price, quantity = 1) {
+  const existingItem = cart.find(item => item.name === name);
+  
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    const newItem = { name: name, price: price, quantity: quantity };
+    cart.push(newItem);
+  }
+  
+  displayCart();
+}
+
+// Função para encontrar um produto pelo nome
+function findProduct(name) {
+  const shoes = [shoe1, shoe2]; // Array de sapatos
+  for (let i = 0; i < shoes.length; i++) {
+    if (shoes[i].name.toLowerCase() === name.toLowerCase()) {
+      return shoes[i];
+    }
+  }
+  return null; // Produto não encontrado
+}
+
+// Função para exibir o carrinho atualizado
+function displayCart() {
+  cartItems.innerHTML = "";
+  let cartTotal = 0;
+
+  for (let i = 0; i < cart.length; i++) {
+    const item = cart[i];
+
+    const listItem = document.createElement("li");
+    listItem.innerText = `${item.name} x ${item.quantity}`;
+    cartItems.appendChild(listItem);
+
+    cartTotal += item.price * item.quantity;
+  }
+
+  let discount = 0;
+
+  if (cartTotal >= 5 || cartTotal < 10) {
+    discount = 0.05; // 5% de desconto
+  } else if (cartTotal >= 10) {
+    discount = 0.15; // 15% de desconto
+  }
+
+  const discountedTotal = cartTotal - (cartTotal * discount);
+  total.innerText = `Total: R$${discountedTotal.toFixed(2)}`;
+
+  // Exibe o carrinho
+  document.getElementById("cart").style.display = "block";
+}
+
+</script>
+</html>

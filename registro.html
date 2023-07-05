@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Registro de Novo Usuário</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Registro de Novo Usuário</h1>
+    <form id="registro-form" onsubmit="verificarExistencia(); return false;">
+      <h3>Criar Novo Usuário</h3>
+      <p>
+        <input type="text" id="novoUsuario" placeholder="Novo Usuário" required><br>
+        <input type="password" id="novaSenha" placeholder="Nova Senha" required><br>
+        <input type="submit" value="Criar Usuário"><br>
+      </p>
+    </form>
+    <p>Já possui uma conta? Faça <a href="login.html">login</a>.</p>
+  </div>
+
+  <script type="text/javascript">
+    // Abertura do banco de dados
+    var db = window.openDatabase("Meu banco", "2.0", "Mybase", 4096);
+
+    // Função para verificar se o usuário já existe no banco de dados
+    function verificarExistencia() {
+      var novoUsuario = document.getElementById("novoUsuario").value;
+
+      db.transaction(function(consulta) {
+        consulta.executeSql("SELECT * FROM usuarios WHERE usuario = ?", [novoUsuario], function(transacao, resultado) {
+          if (resultado.rows.length > 0) {
+            // Usuário já existe
+            alert("O usuário já existe. Por favor, escolha outro nome de usuário.");
+          } else {
+            // Usuário não existe, salvar no banco de dados
+            salvar();
+          }
+        });
+      });
+    }
+
+    // Função para salvar o novo usuário no banco de dados
+    function salvar() {
+      var novoUsuario = document.getElementById("novoUsuario").value;
+      var novaSenha = document.getElementById("novaSenha").value;
+
+      db.transaction(function(inserir) {
+        inserir.executeSql("INSERT INTO usuarios (usuario, senha) VALUES (?,?)", [novoUsuario, novaSenha], function(transacao, resultado) {
+          var idUsuario = resultado.insertId;
+          // Usuário salvo no banco de dados
+
+          // Redirecionar para a página de login após o registro
+          window.location.href = "login.html";
+        });
+      });
+    }
+  </script>
+</body>
+</html>

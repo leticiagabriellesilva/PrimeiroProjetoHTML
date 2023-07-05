@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Login</title>
+</head>
+<body>
+  <div class="container">
+  <h1>Login</h1>
+  <form id="login-form" onsubmit="login(); return false;">
+    <h3>Fazer Login</h3>
+    <input type="text" id="Usuario" placeholder="Usuário"><br>
+    <input type="password" id="Senha" placeholder="Senha"><br>
+    <input type="submit" value="Login">
+  </form>
+</div>
+  <script type="text/javascript">
+    // Abertura do banco de dados
+    var db = window.openDatabase("Meu banco", "2.0", "Mybase", 4096);
+
+    // Função para autenticar o usuário no banco de dados
+    function login() {
+      var usuario = document.getElementById("Usuario").value;
+      var senha = document.getElementById("Senha").value;
+
+      db.transaction(function(transacao) {
+        transacao.executeSql("SELECT * FROM usuarios WHERE usuario = ? AND senha = ?", [usuario, senha], function(transacao, resultado) {
+          if (resultado.rows.length > 0) {
+            // Usuário autenticado com sucesso
+            // Redirecionar para a página de informações dos produtos após o login
+            window.location.href = "informacoes.html";
+          } else {
+            // Credenciais inválidas
+            alert("Usuário ou senha inválidos.");
+          }
+        });
+      });
+    }
+  </script>
+  
+</body>
+</html>
